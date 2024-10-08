@@ -1,5 +1,6 @@
 package com.example.eureka_gateway.eureka_gateway.domain;
 
+import com.example.eureka_gateway.eureka_gateway.util.SecurityUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -20,6 +21,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
@@ -34,9 +36,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @Getter
 @Setter
 public class User implements Serializable {
-
-    public static final String USER_ACTIVE = "ACTIVE";
-    public static final String USER_INACTIVE = "INACTIVE";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_USER")
@@ -96,22 +95,25 @@ public class User implements Serializable {
     private Set<UserDocument> documents = new HashSet<>();
 
     public Set<GrantedAuthority> getAuthorities() {
+
         if (permissions != null && !permissions.isEmpty()) {
-            Set<GrantedAuthority> authorities = new HashSet<>();
-            permissions.forEach(p-> {
-                if (Profile.ACTIVE_STATUS.equals(p.getProfile().getStatus())) {
-                    p.getProfile().getFunctions().forEach( f -> authorities.add(new SimpleGrantedAuthority("ROLE_" + f.getToken())));
-                }
-            });
-            if(this.getType() == 0){
-                authorities.add(new SimpleGrantedAuthority("ROLE_INTERNAL_USER"));
-            } else {
-                authorities.add(new SimpleGrantedAuthority("ROLE_EXTERNAL_USER"));
+
+            Set<GrantedAuthority> authorities = permissions.stream()
+                    .filter(permission -> Profile.ACTIVE_STATUS.equals(permission.getProfile().getStatus()))
+                    .flatMap(permission -> permission.getProfile().getFunctions().stream())
+                    .map(func -> new SimpleGrantedAuthority("ROLE_" + func.getToken()))
+                    .collect(Collectors.toSet());
+
+            if (SecurityUtils.INTERNAL_USER.equals(this.getType())) {
+                authorities.add(new SimpleGrantedAuthority(SecurityUtils.ROLE_INTERNAL_USER));
+                return authorities;
             }
+
+            authorities.add(new SimpleGrantedAuthority(SecurityUtils.ROLE_EXTERNAL_USER));
             return authorities;
-        } else {
-            return Collections.emptySet();
         }
+
+        return Collections.emptySet();
     }
 
 }
