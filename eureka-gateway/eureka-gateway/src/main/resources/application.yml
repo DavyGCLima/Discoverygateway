@@ -24,3 +24,13 @@ eureka:
       defaultZone: http://admin:admin@localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
+jhipster:
+  security:
+    authentication:
+      jwt:
+        # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+        secret: my-secret-key-which-should-be-changed-in-production-and-be-base64-encoded
+        # Token is valid 24 hours
+        token-validity-in-seconds: 86400
+        token-validity-in-seconds-for-remember-me: 604800
