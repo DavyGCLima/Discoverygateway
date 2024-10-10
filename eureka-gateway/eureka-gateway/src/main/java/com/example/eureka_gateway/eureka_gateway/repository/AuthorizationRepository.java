@@ -7,8 +7,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Repository;
 
 @Slf4j
+@Repository
 public class AuthorizationRepository {
 
     @CachePut(value = "autorizacoes", key = "#chave", cacheManager = "autorizacao-cache")

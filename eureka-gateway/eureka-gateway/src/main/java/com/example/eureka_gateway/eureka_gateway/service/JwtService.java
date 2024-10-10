@@ -3,12 +3,16 @@ package com.example.eureka_gateway.eureka_gateway.service;
 import com.example.eureka_gateway.eureka_gateway.config.JHipsterProperties;
 import com.example.eureka_gateway.eureka_gateway.config.JWTProperties;
 import com.example.eureka_gateway.eureka_gateway.repository.AuthorizationRepository;
-import java.time.Instant;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,20 +22,31 @@ public class JwtService {
     private final JWTProperties jwtProperties;
     private final JHipsterProperties jHipsterProperties;
     private final AuthorizationRepository autorizacaoCache;
-    private final JwtEncoder encoder;
 
     public String createToken(Authentication authentication) {
+
+        long now = (new Date()).getTime();
+        var validity = new Date(now + this.tokenValidityInMilliseconds);
+        return buildToken(
+                        authentication,
+                        Jwts.builder()
+                                .signWith(getKey(), SignatureAlgorithm.HS512)
+                                .setExpiration(validity)
+                        , jwtProperties.getAuthorizationGroup())
+                .compact();
+    }
+
+    public Key getKey() {
+        String secret = jHipsterProperties.getSecurity().getAuthentication().getJwt().getSecret();
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public JwtBuilder buildToken(Authentication authentication, JwtBuilder builder, String issuer) {
         String subject = authentication.getName();
-        var now = Instant.now();
-        var validity = now.plusMillis(tokenValidityInMilliseconds);
-
-        var claims = JwtClaimsSet.builder()
-                .issuer(jwtProperties.getAuthorizationGroup())
-                .issuedAt(now)
-                .expiresAt(validity)
-                .subject(authentication.getName());
-
-        autorizacaoCache.put(jwtProperties.getAuthorizationGroup() + subject, authentication);
-        return encoder.encode(JwtEncoderParameters.from(claims.build())).getTokenValue();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        autorizacaoCache.put(issuer + subject, authentication);
+        return builder
+                .setSubject(subject)
+                .setIssuer(issuer);
     }
 }

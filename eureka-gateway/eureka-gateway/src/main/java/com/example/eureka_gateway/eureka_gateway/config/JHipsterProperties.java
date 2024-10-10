@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "jhipster")
+@Getter
+@Setter
 public class JHipsterProperties {
     private final Security security = new Security();
 
@@ -14,14 +16,14 @@ public class JHipsterProperties {
 
         private final Authentication authentication = new Authentication();
 
+        @Getter
+        @Setter
         public static class Authentication {
 
             private final Jwt jwt = new Jwt();
 
-            public Jwt getJwt() {
-                return jwt;
-            }
-
+            @Getter
+            @Setter
             public static class Jwt {
 
                 private String secret = null;
