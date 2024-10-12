@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.Customizer;
@@ -31,28 +32,21 @@ public class SecurityConfig {
 
     @Bean
     SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity,
-                                       ReactiveAuthenticationManager reactiveAuthenticationManager) throws Exception {
+                                       ReactiveAuthenticationManager reactiveAuthenticationManager) {
 
         return httpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(customizer ->
                     customizer.pathMatchers(
-                            "/api/authenticate",
-                            "/api/logout",
-                            "/api/register",
-                            "/api/activate",
-                            "/api/account/reset-password/init",
-                            "/api/account/reset-password/finish",
-                            "/management/health",
-                            "/management/info"
+                            HttpMethod.POST, "/api/authenticate"
                     ).permitAll()
-                            .pathMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
-                            .anyExchange().authenticated()
+                    .pathMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .anyExchange().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults())
+//                .httpBasic(Customizer.withDefaults())
 //                .oauth2ResourceServer(customizer -> customizer.jwt(Customizer.withDefaults()))
                 .authenticationManager(reactiveAuthenticationManager)
 //                .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-//                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
                 .build();
     }
