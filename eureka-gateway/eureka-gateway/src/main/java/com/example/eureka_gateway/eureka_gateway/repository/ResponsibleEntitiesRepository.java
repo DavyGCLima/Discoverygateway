@@ -1,7 +1,7 @@
 package com.example.eureka_gateway.eureka_gateway.repository;
 
 import com.example.eureka_gateway.eureka_gateway.domain.ResponsibleEntities;
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ResponsibleEntitiesRepository extends R2dbcRepository<ResponsibleEntities, Integer> {
+public interface ResponsibleEntitiesRepository extends JpaRepository<ResponsibleEntities, Integer> {
 }

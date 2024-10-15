@@ -22,27 +22,32 @@ public class AuthenticationService {
 
     public Mono<TokenDetailsDTO> authenticate(Authentication authentication) {
         return jwtService.createToken(authentication)
-                .flatMap(token -> createTokenDetails(token, authentication));
+                .flatMap(this::createTokenDetails);
     }
 
-    private Mono<TokenDetailsDTO> createTokenDetails(String token, Authentication authentication) {
+    private Mono<TokenDetailsDTO> createTokenDetails(String token) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return createDTO(token).map(tokenDetailsDTO -> {
             if(isCurrentUserInRole("ROLE_INTERNAL_USER")) {
-                return responsibleEntitiesRepository.count()
-                        .map(count -> {
-                            tokenDetailsDTO.setCountResponsibleEntities(count);
-                            return tokenDetailsDTO;
-                        });
+                tokenDetailsDTO.setCountResponsibleEntities(responsibleEntitiesRepository.count());
+
             } else {
-                User principal = (User) authentication.getPrincipal();
-                String userId = principal.getUsername().split("_")[0];
-                return usersResponsibleEntityRepository.countByUserId(Integer.valueOf(userId))
-                        .map(count -> {
-                            tokenDetailsDTO.setCountResponsibleEntities(count);
-                            return tokenDetailsDTO;
-                        });
+                String userId = getUserId(authentication);
+                tokenDetailsDTO.setCountResponsibleEntities(usersResponsibleEntityRepository.countByUserId(Integer.valueOf(userId)));
             }
-        }).flatMap(tokenDetailsDTOMono -> tokenDetailsDTOMono);
+            return tokenDetailsDTO;
+        });
+    }
+
+    private static String getUserId(Authentication authentication) {
+        String userId = "";
+        if (authentication.getPrincipal() instanceof String) {
+            userId = (String) authentication.getPrincipal();
+        } else {
+            User principal = (User) authentication.getPrincipal();
+            userId = principal.getUsername().split("_")[0];
+        }
+        return userId;
     }
 
     private Mono<TokenDetailsDTO> createDTO(String token) {
