@@ -1,12 +1,12 @@
 package com.example.eureka_gateway.eureka_gateway.repository;
 
 import com.example.eureka_gateway.eureka_gateway.domain.User;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends ReactiveCrudRepository<User, Integer> {
 
-    Optional<User> findOneByLegalNumber(String legalNumber);
+    Mono<User> findOneByLegalNumber(String legalNumber);
 }
