@@ -2,6 +2,12 @@ server:
   port: 8080
 
 spring:
+  cache:
+    type: redis
+    host: localhost
+    port: 6379
+    redis:
+      time-to-live: 86400
   application:
     name: eureka-gateway
   cloud:
@@ -34,3 +40,7 @@ jhipster:
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 604800
+
+cache:
+  expira:
+    segundos: 86400

@@ -20,6 +20,6 @@ public class AuthenticationResource {
 
     @PostMapping("/authenticate")
     public Mono<TokenDetailsDTO> authenticate(@RequestBody Login authentication) {
-        return authenticationService.authenticate(new UsernamePasswordAuthenticationToken(authentication.getUserName(), authentication.getPassword()));
+        return authenticationService.authenticate(new UsernamePasswordAuthenticationToken(authentication.getUsername(), authentication.getPassword()));
     }
 }

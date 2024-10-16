@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class AuthorizationRepository {
 
-    @CachePut(value = "autorizacoes", key = "#chave", cacheManager = "autorizacao-cache")
+    @CachePut(value = "autorizacoes", key = "#chave")
     public UserDetails put(String chave, Authentication authentication) {
         log.debug("Adicionando informações ao cache {}", chave);
 
@@ -24,7 +24,7 @@ public class AuthorizationRepository {
         return new User(authentication.getName(), "", authentication.getAuthorities());
     }
 
-    @Cacheable(value="autorizacoes", cacheManager = "autorizacao-cache")
+    @Cacheable(value="autorizacoes")
     public Optional<UserDetails> get(String chave) {
         log.debug("Resgatando informações do token {}", chave);
         return Optional.empty();
