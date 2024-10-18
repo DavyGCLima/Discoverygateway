@@ -6,6 +6,7 @@ import com.example.eureka_gateway.eureka_gateway.repository.UsersResponsibleEnti
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,10 +20,12 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final ResponsibleEntitiesRepository responsibleEntitiesRepository;
     private final UsersResponsibleEntityRepository usersResponsibleEntityRepository;
+    private final ReactiveAuthenticationManager authenticationManager;
 
-    public Mono<TokenDetailsDTO> authenticate(Authentication authentication) {
-        return jwtService.createToken(authentication)
-                .flatMap(this::createTokenDetails);
+    public Mono<TokenDetailsDTO> authenticate(Authentication login) {
+        return authenticationManager.authenticate(login)
+                .flatMap(authentication -> jwtService.createToken(authentication)
+                .flatMap(this::createTokenDetails));
     }
 
     private Mono<TokenDetailsDTO> createTokenDetails(String token) {
